@@ -1,7 +1,8 @@
 FROM registry.access.redhat.com/ubi8/nodejs-12
 USER 0
 
-ARG SERIAL=3
+RUN yum clean all && rm -rf /var/cache/yum/* \
+ && yum -y update
 
 # Install yarn  
 RUN npm install -g yarn
