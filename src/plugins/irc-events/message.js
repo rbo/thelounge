@@ -6,6 +6,7 @@ const LinkPrefetch = require("./link");
 const cleanIrcMessage = require("../../../client/js/helpers/ircmessageparser/cleanIrcMessage");
 const Helper = require("../../helper");
 const nickRegExp = /(?:\x03[0-9]{1,2}(?:,[0-9]{1,2})?)?([\w[\]\\`^{|}-]+)/g;
+const Prowl = require('node-prowl');
 
 module.exports = function (irc, network) {
 	const client = this;
@@ -169,6 +170,18 @@ module.exports = function (irc, network) {
 				body += `\n\n… and ${chan.highlight - 1} other message${
 					chan.highlight > 2 ? "s" : ""
 				}`;
+			}
+			console.log("prp:" + typeof(client.config.prowlApiKey))
+			if(typeof(client.config.prowlApiKey) != "undefined" && client.config.prowlApiKey != "") {
+				var prowl = new Prowl( client.config.prowlApiKey );
+				// var prowl = new Prowl();
+
+				prowl.push(body, 'Web IRC - ' + title, {
+					priority: 0,
+					url: 'https://irc.bohne.io/#/chan-' + chan.id,
+				}, function( err, remaining ){
+					if( err ) throw err;
+				});
 			}
 
 			client.manager.webPush.push(
