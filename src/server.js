@@ -422,6 +422,25 @@ function initializeClient(socket, client, token, lastMessage, openChannel) {
 			client.clearHistory(data);
 		}
 	});
+	if (!Helper.config.public ) {
+		socket.on("change-prowlapikey", (data) => {
+			if (typeof data === "object") {
+				const prowl_api_key = data.prowl_api_key;
+
+				client.setProwlApiKey(prowl_api_key, (success) => {
+					const obj = {success: false};
+
+					if (success) {
+						obj.success = true;
+					} else {
+						obj.error = "update_failed";
+					}
+
+					socket.emit("change-prowlapikey", obj);
+				});
+			}
+		});
+	}
 
 	if (!Helper.config.public && !Helper.config.ldap.enable) {
 		socket.on("change-password", (data) => {

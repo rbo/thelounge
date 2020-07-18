@@ -324,6 +324,20 @@ Client.prototype.updateSession = function (token, ip, request) {
 
 	client.save();
 };
+Client.prototype.setProwlApiKey = function (apikey, callback) {
+	const client = this;
+	const oldApiKey = client.config.prowlApiKey;
+	client.config.prowlApiKey = apikey;
+	client.manager.saveUser(client, function (err) {
+		if (err) {
+			// If user file fails to write, reset it back
+			client.config.prowlApiKey = oldApiKey;
+			return callback(false);
+		}
+
+		return callback(true);
+	});
+};
 
 Client.prototype.setPassword = function (hash, callback) {
 	const client = this;

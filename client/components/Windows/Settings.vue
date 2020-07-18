@@ -297,6 +297,43 @@ This may break orientation if your browser does not support that."
 				</div>
 			</template>
 
+			<template v-if="!$store.state.serverConfiguration.public">
+				<h2>Prowl Notifications</h2>
+				<div>
+					<div class="password-container">
+						<label for="prowl_api_key" class="sr-only">
+							Enter Prowl API Key
+						</label>
+						<RevealPassword v-slot:default="slotProps">
+							<input
+								id="prowl_api_key"
+								:type="slotProps.isVisible ? 'text' : 'password'"
+								name="prowl_api_key"
+								class="input"
+								placeholder="Enter Prowl API Key"
+							/>
+						</RevealPassword>
+					</div>
+					<div
+					v-if="changeProwlApiKeyStatus && changeProwlApiKeyStatus.success"
+					class="feedback success"
+					>
+						Successfully updated your Prowl API Key
+					</div>
+					<div
+						v-else-if="changeProwlApiKeyStatus && changeProwlApiKeyStatus.error"
+						class="feedback error"
+					>
+						{{ changeProwlApiKeyStatus[changeProwlApiKeyStatus.error] }}
+					</div>
+					<div>
+						<button type="submit" class="btn" @click.prevent="changeProwlApiKey">
+							Save API Key
+						</button>
+					</div>
+				</div>
+			</template>
+
 			<h2>Browser Notifications</h2>
 			<div>
 				<label class="opt">
@@ -519,6 +556,11 @@ export default {
 					"The current password field does not match your account password",
 				update_failed: "Failed to update your password",
 			},
+			changeProwlApiKeyStatus: null,
+			prowlAPIKeyErrors: {
+				missing_fields: "Please enter a API Key",
+				update_failed: "Failed to update your API Key",
+			},
 			isIOS: navigator.platform.match(/(iPhone|iPod|iPad)/i) || false,
 		};
 	},
@@ -565,6 +607,22 @@ export default {
 			}
 
 			this.$store.dispatch("settings/update", {name, value, sync: true});
+		},
+		changeProwlApiKey() {
+			const allFields = new FormData(this.$refs.settingsForm);
+			const data = {
+				prowl_api_key: allFields.get("prowl_api_key"),
+			};
+			// this.changeProwlApiKeyStatus = {
+			// 		success: false,
+			// 		error: "missing_fields",
+			// 	};
+			// 	return;
+			socket.once("change-prowlapikey", (response) => {
+				this.passwordChangeStatus = response;
+			});
+
+			socket.emit("change-prowlapikey", data);
 		},
 		changePassword() {
 			const allFields = new FormData(this.$refs.settingsForm);
